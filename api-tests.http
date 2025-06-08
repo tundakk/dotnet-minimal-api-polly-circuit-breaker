@@ -1,0 +1,62 @@
+### Test the Circuit Breaker Pattern in Action
+
+# Health check
+GET http://localhost:5117/health
+
+###
+
+# Reset the fake service counter (call this before testing)
+POST http://localhost:5117/reset-fake-service
+
+###
+
+# Test WITHOUT circuit breaker (will retry on failures)
+POST http://localhost:5117/generate-text
+Content-Type: application/json
+
+{
+  "prompt": "Explain quantum computing"
+}
+
+###
+
+# Test WITH circuit breaker (will fail fast after circuit opens)
+POST http://localhost:5117/generate-text-resilient
+Content-Type: application/json
+
+{
+  "prompt": "Explain quantum computing"
+}
+
+###
+
+# Test multiple requests to trigger circuit breaker
+# Run this several times quickly to see the circuit breaker in action
+POST http://localhost:5117/generate-text-resilient
+Content-Type: application/json
+
+{
+  "prompt": "What is artificial intelligence?"
+}
+
+###
+
+# After circuit breaker opens, this should return fallback response immediately
+POST http://localhost:5117/generate-text-resilient
+Content-Type: application/json
+
+{
+  "prompt": "Tell me about machine learning"
+}
+
+###
+
+# Test the fake LLM endpoint directly
+POST http://localhost:5117/v1/completions
+Content-Type: application/json
+
+{
+  "prompt": "Direct call to fake LLM",
+  "maxTokens": 50,
+  "temperature": 0.7
+}
